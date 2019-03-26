@@ -7,7 +7,6 @@ import           Cis194.Hw.Buffer
 import           Cis194.Hw.Scrabble
 import           Cis194.Hw.Sized
 import           Data.Monoid
-import           Data.List
 
 data JoinList m a = Empty
                   | Single m a
@@ -98,15 +97,28 @@ scoreLine s = Single (scoreString s) s
 toSingle :: String -> JoinList (Score, Size) String
 toSingle s = Single (scoreString s, Size (length s)) s
 
+toBalancedJoinList :: Monoid m => [JoinList m a] -> JoinList m a
+toBalancedJoinList lst =
+  let (l, r) = splitAt (quot (length lst) 2) lst
+   in mergeJoinLists l r
+
+mergeJoinLists :: Monoid m => [JoinList m a] -> [JoinList m a] -> JoinList m a
+mergeJoinLists [] [] = Empty
+mergeJoinLists ls [] = toBalancedJoinList ls
+mergeJoinLists [] rs = toBalancedJoinList rs
+mergeJoinLists ls rs
+  | (length ls == 1) && (length rs == 1) = head ls <> head rs
+  | length ls == 1 = head ls <> toBalancedJoinList rs
+  | length rs == 1 = toBalancedJoinList ls <> head rs
+  | otherwise = toBalancedJoinList ls <> toBalancedJoinList rs
+
 instance Buffer (JoinList (Score, Size) String) where
   toString jl = case jl of
     Empty          -> ""
     (Single _ s)   -> s
     (Append _ l r) -> toString l <> toString r
 
-  -- TODO this is unbalanced/linear
-  fromString s =
-    foldl' (<>) Empty $ map toSingle $ lines s
+  fromString = toBalancedJoinList . map toSingle . lines
 
   line = indexJ
 
