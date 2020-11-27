@@ -1,16 +1,20 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
-module Sized where
+module Cis194.Hw.Sized where
 
-import Data.Monoid
+import Data.Monoid ()
 
 newtype Size = Size Int
   deriving (Eq, Ord, Show, Num)
 
+-- why is the name the opposite of the signature
 getSize :: Size -> Int
 getSize (Size i) = i
 
+
 class Sized a where
   size :: a -> Size
+  intSize :: a -> Int
+  intSize s = getSize (size s)
 
 instance Sized Size where
   size = id
