@@ -7,6 +7,15 @@ import Test.QuickCheck
 main :: IO ()
 main = hspec spec
 
+allTree :: (Tree a -> Bool) -> Tree a -> Bool
+allTree f Leaf = f Leaf
+allTree f node@(Node _ l _ r) = f node && f l && f r
+
+isBalanced :: Tree a -> Bool
+isBalanced = allTree balanced
+  where balanced Leaf = True
+        balanced (Node _ l _ r) = (height l + 1) > height r || (height l - 1) < height r
+
 spec :: Spec
 spec = do
   describe "fun1'" $ do
@@ -18,6 +27,12 @@ spec = do
       fun2 1 `shouldBe` fun2' 1
       fun2 2 `shouldBe` fun2' 2
       fun2 3 `shouldBe` fun2' 3
+
+  describe "foldTree" $ do
+    it "should have the correct height" $ do
+      height (foldTree "ABCDEFGHIJ") `shouldBe` 3
+    it "should be balanced" $ do
+      isBalanced (foldTree "ABCDEFGHIJ") `shouldBe` True
 
   describe "map'" $ do
     it "should behave as map does" $ do
